@@ -1,0 +1,40 @@
+scenario:
+  name: message-drop-stress
+  version: "1.0"
+  description: "Test agent resilience to inter-agent message loss (MRS: packet loss)"
+
+  faults:
+    - fault_type: message_drop
+      probability: 0.5
+      target_agents: [reasoning]
+      schedule: continuous
+      params:
+        drop_ratio: 0.4
+        drop_newest: false
+        min_keep: 1
+
+    - fault_type: api_throttle
+      probability: 0.3
+      target_agents: [literature]
+      schedule: burst
+      params:
+        mode: latency
+        latency_ms: 1500
+        burst_on_steps: 2
+        burst_off_steps: 3
+
+  sweep:
+    enabled: true
+    parameter: probability
+    values: [0.1, 0.3, 0.5, 0.7, 1.0]
+
+  evaluation:
+    judge_model: "Qwen/Qwen2.5-32B-Instruct-AWQ"
+    metrics:
+      - task_completion
+      - output_quality
+      - cost_efficiency
+
+  metadata:
+    mrs_category: packet_loss_latency
+    expected_impact: "Reasoning agent loses context from upstream; literature agent intermittently delayed"

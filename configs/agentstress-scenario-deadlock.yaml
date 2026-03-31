@@ -1,0 +1,38 @@
+scenario:
+  name: deadlock-thrash-stress
+  version: "1.0"
+  description: "Test system behavior under deadlock and token thrashing (MRS: deadlock/livelock)"
+
+  faults:
+    - fault_type: deadlock
+      probability: 1.0
+      target_agents: [reasoning]
+      schedule: continuous
+      params:
+        delegate_to: literature
+        max_loops: 3
+
+    - fault_type: token_thrash
+      probability: 0.7
+      target_agents: [report]
+      schedule: progressive
+      params:
+        inflation_factor: 4
+        target_input: true
+        target_output: true
+        progressive_start: 0.1
+        progressive_end: 1.0
+        progressive_ramp_steps: 5
+
+  sweep:
+    enabled: false
+
+  evaluation:
+    judge_model: "Qwen/Qwen2.5-32B-Instruct-AWQ"
+    metrics:
+      - task_completion
+      - cost_efficiency
+
+  metadata:
+    mrs_category: deadlock_livelock
+    expected_impact: "Reasoning agent stuck in delegation loop; report agent burns tokens with inflated context"

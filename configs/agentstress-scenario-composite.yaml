@@ -1,0 +1,55 @@
+scenario:
+  name: composite-stress
+  version: "1.0"
+  description: "Combined fault injection across all MRS categories for comprehensive reliability assessment"
+
+  faults:
+    - fault_type: context_truncation
+      probability: 0.5
+      target_agents: [reasoning]
+      schedule: continuous
+      params:
+        keep_ratio: 0.4
+        keep_system: true
+
+    - fault_type: message_drop
+      probability: 0.3
+      target_agents: [reasoning]
+      schedule: continuous
+      params:
+        drop_ratio: 0.3
+        min_keep: 1
+
+    - fault_type: hallucination
+      probability: 0.4
+      target_agents: [literature]
+      schedule: continuous
+      params:
+        num_hallucinations: 1
+        injection_point: append
+
+    - fault_type: token_thrash
+      probability: 0.3
+      target_agents: [report]
+      schedule: continuous
+      params:
+        inflation_factor: 2
+        target_input: true
+        target_output: false
+
+  sweep:
+    enabled: true
+    parameter: probability
+    values: [0.1, 0.25, 0.5, 0.75, 1.0]
+
+  evaluation:
+    judge_model: "Qwen/Qwen2.5-32B-Instruct-AWQ"
+    metrics:
+      - task_completion
+      - output_quality
+      - safety
+      - cost_efficiency
+
+  metadata:
+    mrs_category: composite
+    expected_impact: "Combined degradation: truncated reasoning + hallucinated literature + inflated reports"

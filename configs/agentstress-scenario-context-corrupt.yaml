@@ -1,0 +1,45 @@
+scenario:
+  name: context-corruption-sweep
+  version: "1.0"
+  description: "Test agent resilience to context corruption faults (MRS: sensor noise/blindness)"
+
+  faults:
+    - fault_type: context_truncation
+      probability: 1.0
+      target_agents: [reasoning]
+      schedule: continuous
+      params:
+        keep_ratio: 0.3
+        keep_system: true
+
+    - fault_type: context_noise
+      probability: 0.5
+      target_agents: [literature]
+      schedule: continuous
+      params:
+        noise_ratio: 0.15
+        target_role: human
+
+    - fault_type: rag_failure
+      probability: 1.0
+      target_agents: [literature]
+      schedule: once
+      params:
+        failure_mode: empty
+        rag_marker: "[Retrieved Context]"
+
+  sweep:
+    enabled: true
+    parameter: probability
+    values: [0.1, 0.3, 0.5, 0.7, 1.0]
+
+  evaluation:
+    judge_model: "Qwen/Qwen2.5-32B-Instruct-AWQ"
+    metrics:
+      - task_completion
+      - output_quality
+      - cost_efficiency
+
+  metadata:
+    mrs_category: sensor_noise_blindness
+    expected_impact: "Reasoning agent should degrade gracefully; report quality drops proportional to truncation severity"

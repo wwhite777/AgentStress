@@ -1,0 +1,54 @@
+topology:
+  name: medagent-clinical
+  version: "1.0"
+  description: "MedAgent clinical pipeline: triage → literature → reasoning → report"
+
+  agents:
+    - id: triage
+      name: Triage Agent
+      role: router
+      model: default
+      description: "ESI-level triage and chief complaint extraction"
+
+    - id: literature
+      name: Literature Agent
+      role: worker
+      model: default
+      description: "PubMed/guideline retrieval and summarization"
+
+    - id: reasoning
+      name: Clinical Reasoning Agent
+      role: worker
+      model: default
+      description: "Differential diagnosis, drug interactions, lab interpretation"
+
+    - id: report
+      name: Report Agent
+      role: aggregator
+      model: default
+      description: "SOAP note generation from aggregated clinical data"
+
+  edges:
+    - source: triage
+      target: literature
+      edge_type: directed
+      label: "triage_output → literature_input"
+
+    - source: triage
+      target: reasoning
+      edge_type: directed
+      label: "triage_output → reasoning_input (direct for ESI 1-2)"
+
+    - source: literature
+      target: reasoning
+      edge_type: directed
+      label: "literature_summary → reasoning_context"
+
+    - source: reasoning
+      target: report
+      edge_type: directed
+      label: "diagnosis + workup → report_generation"
+
+  metadata:
+    framework: langgraph
+    source_project: medagent
